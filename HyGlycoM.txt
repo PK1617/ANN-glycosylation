@@ -1,0 +1,1359 @@
+#The kinetic modules of the HyGlycoM are developed in gPROMS 5.1.1 (PSE) software
+#Model (adapted from: https://onlinelibrary.wiley.com/doi/full/10.1002/bit.26960)
+
+PARAMETER
+n           AS      integer #reactions number in the HCP network
+k           AS      integer #OS nymber in the HCP network
+
+m           AS      integer #reactions number in the mAb network
+p           AS      integer #OS nymber in the mAb network
+
+comp        AS      integer #number of compartments
+t_golgi     AS      integer #min of a OS in golgi
+V_golgi     AS      REAL
+
+Enzymes     AS      ORDERED_SET
+
+V_cell  AS  REAL
+MW      AS  REAL
+MW_HCPs AS  REAL
+
+#OS_in           AS      ARRAY(k)    OF  REAL # fraction of each OS in the inlet flow    
+
+kf_UDPGal       AS  REAL
+#TP_UDPGal       AS  REAL
+#Km_UDPGal       AS  REAL
+#distr_TP_Gal    AS ARRAY(comp) OF REAL
+
+kf_UDPGlcNAc    AS  REAL
+#TP_UDPGlcNAc    AS  REAL
+Km_UDPGlcNAc    AS  REAL
+#distr_TP_GlcNAc AS ARRAY(comp) OF REAL
+
+kf_GDPFuc    AS  REAL
+#TP_GDPFuc    AS  REAL
+#Km_GDPFuc    AS  REAL
+#distr_TP_Fuc    AS ARRAY(comp) OF REAL
+
+kf_CMPNeu5Ac    AS  REAL
+#TP_CMPNeu5Ac    AS  REAL
+Km_CMPNeu5Ac    AS  REAL
+#distr_TP_Sia    AS ARRAY(comp) OF REAL
+
+Acomp           AS  REAL
+
+VARIABLE
+t as factor
+#Cell culture and NSD model
+V AS volume
+Xv AS cell_density
+Xt AS cell_density
+Fin AS flow
+Fout AS flow
+mu AS rate
+mu_max AS rate
+mu_d_max AS rate
+mu_d AS rate
+Klysis AS rate
+flim AS factor
+finh AS factor
+
+Kglc AS concentration
+Klac AS concentration
+Kasn AS concentration
+Kglu AS concentration
+Kgln AS concentration
+
+
+KIlac AS concentration #inhibition
+KIamm AS concentration
+KIurd AS concentration
+KIgal AS concentration
+
+Kd_amm AS concentration #death
+Kd_urd AS concentration
+Kd_gal AS concentration
+Kd_urd_gal AS concentration
+Kd_asn AS concentration
+
+Urd AS concentration
+Gal AS concentration
+
+Glc AS concentration #extracellular
+Glu AS concentration
+Gln AS concentration
+Asn AS concentration
+Asp AS concentration
+Lac AS concentration
+Arg AS concentration
+Lys AS concentration
+Pro AS concentration
+Amm AS concentration
+                                             #metabolism
+
+Kgal AS concentration
+Kurd AS concentration
+
+Urd_feed AS concentration
+Gal_feed AS concentration
+
+Qglc AS rate
+Qgln AS rate
+Qlac AS rate
+Qasn AS rate
+Qasp AS rate
+Qglu AS rate
+Qarg AS rate
+Qlys AS rate
+Qpro AS rate
+Qamm AS rate
+Qgal AS rate
+Qurd AS rate
+
+Glc_feed AS concentration #concentration in the feed
+Glu_feed AS concentration
+Gln_feed AS concentration
+Asn_feed AS concentration
+Asp_feed AS concentration
+Arg_feed AS concentration
+Lys_feed AS concentration
+Pro_feed AS concentration
+Amm_feed AS concentration
+
+Yx_glc AS yield
+Yx_gln AS yield
+Yx_glu AS yield
+Yx_lac AS yield
+Yx_amm AS yield
+Yx_asn AS yield
+Yx_asp AS yield
+Yx_arg AS yield
+Yx_lys AS yield
+Yx_pro AS yield
+Yx_gal AS yield
+Yx_urd AS rate
+
+Ygln_glu AS factor
+Ygln_asn AS factor #mine factor
+Ygln_amm AS factor
+Ylac_glc AS factor
+Yasp_asn AS factor
+Yarg_glu AS factor
+Ylys_glu AS factor
+Ypro_glu AS factor
+Yglu_gln AS factor
+Ylac_gal AS factor
+Yamm_asn AS factor
+Yamm_glu AS factor
+Yamm_urd AS factor
+
+m_lac AS rate #mmol/(h*cell), the same units with Q_lac
+m_glc AS rate #mmol/(h*cell), the same units with Q_glc
+m_asn AS rate
+m_gal AS rate
+Kamm_gln AS concentration
+m_gln AS factor
+Kc_gal AS concentration
+Km_asn AS concentration
+
+#n AS factor
+Ku_g AS concentration
+
+nd_urd AS factor#AS REAL
+
+Yasn_asp AS factor
+
+Lac_max_1 AS factor
+Lac_max_2 AS factor
+
+QmAb AS factor #mAb_rate (mg/cell/h)
+mAb AS factor #mAb_conc (mg/L)
+YmAb_Xv AS factor #yield (mg/cell/h)
+YmAb_mu AS factor #yield (mg/cell)
+
+HCP AS factor
+Qhcp AS factor
+DCW AS factor # Dry Cell Weight (pg_cell/cell)
+CPC AS factor # cell protein content (% of pg_prot/pg_cell)
+
+ng as factor
+
+factor as factor
+
+#intra
+
+Fin_glc AS     factor   #mmol/(dm^2 hr)
+Fin_gln AS     factor   #mmol/(dm^2 hr)
+Glc_int AS      Molar_Conc  #mM [=] mmol/L_cell
+Gln_int AS      Molar_Conc  #mM [=] mmol/L_cell
+f2 as factor
+
+#NSDs
+
+UDPGlcNAc   AS	Molar_Conc  #uM [=] umol/L_cell
+UDPGlc      AS	Molar_Conc  #uM [=] umol/L_cell
+GDPMan      AS	Molar_Conc  #uM [=] umol/L_cell
+UDPGalNAc   AS  Molar_Conc  #uM [=] umol/L_cell
+CMPNeu5Ac   AS	Molar_Conc  #uM [=] umol/L_cell
+UDPGal      AS	Molar_Conc  #uM [=] umol/L_cell
+GDPFuc	    AS	Molar_Conc  #uM [=] umol/L_cell
+
+r_met_glc   AS	Rate        #umol_met/(L_cell hr)
+r_met_gln   AS	Rate        #umol_met/(L_cell hr)
+
+#### feeding terms #####
+r1_urd AS Rate
+r4_urd AS Rate
+r6_urd AS Rate
+r6_gal AS Rate
+r2_urd AS rate
+r6_sink AS Rate
+r7_sink as Rate
+r1_sink as Rate
+
+Vmax1u as rate
+Vmax4u as rate
+Vmax6u as rate
+Vmax6g as rate
+Vmax2u as rate
+Vmax6_sink as rate
+Vmax7_sink as rate
+Vmax1_sink as rate
+
+K1u as concentration
+K4u as concentration
+K6u as concentration
+K6g as concentration
+K2u as concentration
+K6_sink as concentration
+K7_sink as concentration
+K1_sink as concentration
+
+Ki1_sink as concentration
+Ki6_sink as concentration
+Ki6_urd as concentration
+Ki6_glc as concentration
+Ki6_gal as concentration
+Ki6_ugal as concentration
+
+########################## NSD rates ############
+
+r1_f        AS	Rate        #umol/(L_cell hr)
+r2_f        AS	Rate        #umol/(L_cell hr)
+r2_bf       AS  Rate
+r3_f        AS	Rate        #umol/(L_cell hr)
+r4_f        AS	Rate        #umol/(L_cell hr)
+r4_bf       as  Rate
+r5_f        AS	Rate        #umol/(L_cell hr)
+r6_f        AS	Rate        #umol/(L_cell hr)
+r7_f        AS	Rate        #umol/(L_cell hr)
+
+Fout_UDPGlcNAc  AS  Rate    #umol/(L_cell hr)
+Fout_UDPGlc     AS  Rate    #umol/(L_cell hr)
+Fout_GDPMan     AS  Rate    #umol/(L_cell hr)
+Fout_UDPGalNAc  AS  Rate    #umol/(L_cell hr)
+Fout_CMPNeu5Ac  AS  Rate    #umol/(L_cell hr)
+Fout_UDPGal     AS  Rate    #umol/(L_cell hr)
+Fout_GDPFuc     AS  Rate    #umol/(L_cell hr)
+
+Vmax1 AS rate
+Vmax2 AS rate
+Vmax2b as rate
+Vmax3 AS rate
+Vmax4 AS rate
+Vmax4b as rate
+Vmax5 AS rate
+Vmax6 AS rate
+Vmax7 AS rate
+
+k_T_glc     AS  Rate        #mmol_glc/(dm^2 hr)
+k_T_gln     AS  Rate        #mmol_gln/(dm^2 hr)
+
+Kdf_E1  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E1_gln  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E2  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E2b AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E3  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E4  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E4b as      concentration
+Kdf_E5  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E6  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_E7  AS	Molar_Conc  #mM [=] mmol/L_cell
+Kdf_Glc_UDPGlc as concentration
+Kdf_Glc_GDPMan as concentration
+Kdf_E1_glc as concentration
+
+KiE2A as factor
+KiE2B as factor
+KiE2C as factor
+KiE2D as factor
+Ki2_gal as concentration
+Ki2_urd as concentration
+Ki_E5	AS	Molar_Conc  #mM [=] mmol/L_cell
+KiE6A as factor
+KiE6B as factor
+KiE6C as factor
+Ki_E7	AS	Molar_Conc  #mM [=] mmol/L_cell
+Ki3_glc as concentration
+KiE4A as concentration
+KiE4B as concentration
+KiE4C as concentration
+KiE4bA as concentration
+KiE4bB as concentration
+KiE4bC as concentration
+
+fo_glc   AS	Stoich_Coeff
+fo_gln   AS	Stoich_Coeff
+
+m5 as factor
+#Fout factors
+KTP_UDPGlc    AS concentration
+KTP_UDPGal    AS concentration
+KTP_UDPGlcNAc AS concentration
+KTP_UDPGalNAc AS concentration
+KTP_GDPMan    AS concentration
+KTP_GDPFuc    AS concentration
+KTP_CMPNeu5Ac AS concentration
+#mine Fout,NSD terms
+Nhcp_lipids_UDPGlc AS factor #mmolNSD/cell
+Nhcp_lipids_UDPGlcNAc AS factor #mmolNSD/cell
+Nhcp_lipids_UDPGal AS factor #mmolNSD/cell
+Nhcp_lipids_UDPGalNAc AS factor #mmolNSD/cell
+Nhcp_lipids_GDPMan AS factor #mmolNSD/cell
+Nhcp_lipids_GDPFuc AS factor #mmolNSD/cell
+Nhcp_lipids_CMPNeu5Ac AS factor #mmolNSD/cell
+
+NmAb_UDPGlc AS factor #mmolNSD/gmAb
+NmAb_UDPGlcNAc AS factor #mmolNSD/gmAb
+NmAb_UDPGal AS factor #mmolNSD/gmAb
+NmAb_UDPGalNAc AS factor #mmolNSD/gmAb
+NmAb_GDPMan AS factor #mmolNSD/gmAb
+NmAb_GDPFuc AS factor #mmolNSD/gmAb
+NmAb_CMPNeu5Ac AS factor #mmolNSD/gmAb
+
+NmAb_UDPGlcNAc_b AS factor
+
+N_UDPGlc_Glc as factor
+N_UDPGlcNAc_Glc as factor 
+N_GDPMan_Glc as factor
+
+#r_UDPGal_glyc       AS factor #μΜ_NSD/min (in order to get into the NSD model it has to take the form of mM/h)
+#r_UDPGlcNAc_glyc    AS factor
+#r_GDPFuc_glyc       AS factor
+#r_CMPNeu5Ac_glyc    AS factor
+
+N_Oglyc_lipids_UDPGlc      AS factor #mmolNSD/cell
+N_Oglyc_lipids_UDPGlcNAc   AS factor
+N_Oglyc_lipids_UDPGal      AS factor
+N_Oglyc_lipids_UDPGalNAc   AS factor
+N_Oglyc_lipids_GDPMan      AS factor
+N_Oglyc_lipids_GDPFuc      AS factor
+N_Oglyc_lipids_CMPNeu5Ac   AS factor
+#######################################################################################################################################################################################################
+
+EQUATION
+##############################################   Growth    #######################################
+
+
+$V = Fin - Fout;
+
+$(V*Xv) = mu*V*Xv - mu_d*V*Xv - Fout*Xv;
+
+$(V*Xt) = mu*V*Xv - Klysis*V*(Xt-Xv) - Fout*Xt;
+
+mu = mu_max*flim*finh;
+
+flim =Glc/(Kglc+Glc)*Asn/(Kasn+Asn);
+
+finh = (KIamm/(KIamm + Amm)) * (KIlac/(KIlac + Lac)) * (KIurd/(KIurd + Urd));
+
+mu_d = mu_d_max*(Amm/(Kd_amm+Amm)+Urd/(Kd_urd+Urd)) ;
+
+
+###############################################################METABOLISM#####################################
+
+
+#Glucose 
+$(V*Glc)= +Fin*Glc_feed - Fout*Glc + Qglc*V*Xv ; 
+
+Qglc =(-mu/Yx_glc - m_glc)*(Kc_gal/(Kc_gal+Gal))^ng; 
+
+ng = 1 - factor*(Qgal/Qglc);
+
+#Glutamine
+$(V*Gln) = Qgln*V*Xv +Fin*Gln_feed - Fout*Gln; 
+
+Qgln = + mu/Yx_gln - Qglu*Ygln_glu - Qasn*Ygln_asn + Ygln_amm*Qamm; 
+
+#Lactate
+$(V*Lac) = Qlac*V*Xv - Fout*Lac; 
+
+Qlac=(mu/Yx_lac  - Ylac_glc*Qglc {-Ylac_gal*Qgal})*(Lac_max_1 -Lac)/Lac_max_1 + m_lac*(Lac_max_2-Lac)/(Lac_max_2);
+
+#Ammonia
+$(V*Amm) = Qamm*V*Xv +Fin*Amm_feed - Fout*Amm; 
+
+Qamm= + mu/Yx_amm - Yamm_urd*Qurd ;
+
+#Asparagine
+$(V*Asn)=Qasn*Xv*V +Fin*Asn_feed - Fout*Asn;
+
+Qasn = (-mu/Yx_asn) - Yasn_asp*Qasp;
+
+#Aspartate
+$(V*Asp)=Qasp*Xv*V +Fin*Asp_feed - Fout*Asp;
+
+Qasp = Qasn*Yasp_asn-mu/Yx_asp;
+
+#Arginine
+$(V*Arg)=Qarg*Xv*V +Fin*Arg_feed - Fout*Arg;
+
+Qarg = Qglu*Yarg_glu-mu/Yx_arg;
+
+#Lysine
+$(V*Lys)=Qlys*Xv*V +Fin*Lys_feed - Fout*Lys; 
+
+Qlys = Qglu*Ylys_glu-mu/Yx_lys;
+
+#Proline
+$(V*Pro)=Qpro*Xv*V +Fin*Pro_feed -Fout*Pro;
+
+Qpro = Qglu*Ypro_glu -mu/Yx_pro;
+
+#Glutamate
+$(V*Glu)=Qglu*Xv*V +Fin*Glu_feed -Fout*Glu; 
+
+Qglu = -mu/Yx_glu ;
+
+#Galactose
+$(V*Gal) = Qgal*V*Xv  - Fout*Gal + Fin*Gal_feed;#
+
+Qgal=(-mu/Yx_gal)*(Gal/(Gal+Kgal)); 
+
+#Uridine
+$(V*Urd) = Qurd*V*Xv - Fout*Urd +Fin*Urd_feed;#
+
+Qurd = -Urd/(Kurd+Urd)*mu/Yx_urd;
+
+##########################################    mAbs SYNTHESIS   ##########################################
+
+$(V*mAb) = QmAb*V*Xv - Fout*mAb;
+
+QmAb = YmAb_mu*mu + YmAb_Xv;
+
+Qhcp = (DCW*1E-9)*(CPC/100)*mu; #del Val et al 2016 Sc.R.
+
+$(HCP) = Qhcp/V_cell;#mg/Lcell
+############################# nucleotides and NSD ####################################################
+
+# intracellular dynamics
+
+Fin_glc = (k_T_glc) * Glc ;
+Fin_gln = (k_T_gln) * Gln ;
+r_met_glc = - fo_glc * (1/V_cell) * Qglc ;
+r_met_gln = fo_gln * (1/V_cell) * Qgln ;
+
+Gln_int = f2*Gln;
+$Glc_int = -fo_glc*Qglc/V_cell - (N_UDPGlc_Glc*r2_f + N_UDPGlcNAc_Glc*r1_f + N_GDPMan_Glc*r3_f {+ r_met_glc});
+
+# NSD
+$GDPMan = r3_f - r7_f - Fout_GDPMan;
+$GDPFuc = r7_f - r7_sink - Fout_GDPFuc;
+$UDPGlcNAc = r1_f + r1_urd - r4_f - r5_f - r1_sink - Fout_UDPGlcNAc;
+$UDPGalNAc = r4_f + r4_urd - Fout_UDPGalNAc;
+$CMPNeu5Ac = r5_f - Fout_CMPNeu5Ac;
+$UDPGal = r6_f + r6_urd + r6_gal - r6_sink - Fout_UDPGal;  
+$UDPGlc = r2_f + r2_bf + r2_urd - Fout_UDPGlc;
+
+r1_f * (Kdf_E1_gln + Gln_int)= Vmax1* Gln_int;
+r2_f * (Kdf_Glc_UDPGlc + Glc) = Vmax2 * Glc;
+r2_bf = Vmax2b*UDPGal/(Kdf_E6*(1 + UDPGlcNAc/KiE2A + UDPGalNAc/KiE2B + UDPGlc/KiE2C + UDPGal/KiE2D) + UDPGal);
+r3_f * (Kdf_Glc_GDPMan + Glc) = Vmax3 * Glc;
+r4_f * (Kdf_E4 + UDPGlcNAc) = Vmax4 * UDPGlcNAc; 
+r4_bf * (Kdf_E4 + UDPGalNAc)= Vmax4b * UDPGalNAc; # it's not used in the mass balances
+r5_f * ((UDPGlcNAc + Kdf_E5*(1+CMPNeu5Ac/Ki_E5))) = Vmax5 * UDPGlcNAc;
+r6_f  = (Vmax6*UDPGlc) / (Kdf_E6*(1 + UDPGlcNAc/KiE6A + UDPGalNAc/KiE6B + UDPGal/KiE6C) + UDPGlc);
+r6_gal*(K6g*(1+UDPGal/Ki6_ugal + Gal/Ki6_gal + Urd/Ki6_urd) + Gal)  =  Vmax6g*Gal;
+r7_f * (Kdf_E7 + GDPMan)*(1+GDPFuc/Ki_E7)= Vmax7 * GDPMan;
+
+
+r7_sink = Vmax7_sink * (GDPFuc/(GDPFuc+K7_sink));
+r1_sink * (UDPGlcNAc+K1_sink)*(1+CMPNeu5Ac/Ki1_sink) = Vmax1_sink * UDPGlcNAc;
+r6_sink = Vmax6_sink * UDPGal/(UDPGal + K6_sink*(1+UDPGlc/Ki6_glc))*(Gal/(Gal+0.00001)); # the last term exists for not having UDPGal_sink when Gal is not fed
+
+# uridine rates
+r1_urd = Vmax1u*Urd/(K1u + Urd);
+r2_urd = Vmax2u*Urd/(K2u + Urd);
+r4_urd = Vmax4u*Urd/(K4u + Urd);
+r6_urd = Vmax6u*Urd/(K6u + Urd);
+
+#Fout
+#Perhaps in the Fout I can replace the "mu" with the newly inserted QHCP
+Fout_UDPGlc = UDPGlc/(KTP_UDPGlc + UDPGlc)*(Nhcp_lipids_UDPGlc*mu/V_cell  +  NmAb_UDPGlc*QmAb/V_cell);#According to '' A theoritical estimate for nucleotide...'' del Val et al. 2016:
+Fout_UDPGal = UDPGal/(KTP_UDPGal + UDPGal)*(Nhcp_lipids_UDPGal*mu/V_cell + NmAb_UDPGal*QmAb/V_cell);#(N_Oglyc_lipids_UDPGal*mu/V_cell + r_UDPGal_glyc/1000*60);#  r_UDPGal_glyc/1000*60);#);
+Fout_UDPGlcNAc = UDPGlcNAc/(KTP_UDPGlcNAc + UDPGlcNAc)*(Nhcp_lipids_UDPGlcNAc*mu/V_cell  +  NmAb_UDPGlcNAc*QmAb/V_cell +  NmAb_UDPGlcNAc_b*QmAb/V_cell);#(N_Oglyc_lipids_UDPGlcNAc*mu/V_cell + r_UDPGlcNAc_glyc/1000*60);#+  r_UDPGlcNAc_glyc/1000*60);#NmAb_UDPGlcNAc*QmAb);
+Fout_UDPGalNAc = UDPGalNAc/(KTP_UDPGalNAc + UDPGalNAc)*(Nhcp_lipids_UDPGalNAc*mu/V_cell  +  NmAb_UDPGalNAc*QmAb/V_cell);
+Fout_GDPMan = GDPMan/(KTP_GDPMan + GDPMan)*(Nhcp_lipids_GDPMan*mu/V_cell  +  NmAb_GDPMan*QmAb/V_cell);
+Fout_GDPFuc = GDPFuc/(KTP_GDPFuc + GDPFuc)*(Nhcp_lipids_GDPFuc*mu/V_cell  + NmAb_GDPFuc*QmAb/V_cell);# (N_Oglyc_lipids_GDPFuc*mu/V_cell + r_GDPFuc_glyc/1000*60);# r_GDPFuc_glyc/1000*60);#);
+Fout_CMPNeu5Ac = CMPNeu5Ac/(KTP_CMPNeu5Ac + CMPNeu5Ac)*(Nhcp_lipids_CMPNeu5Ac*mu/V_cell  + NmAb_CMPNeu5Ac*QmAb/V_cell);#(N_Oglyc_lipids_CMPNeu5Ac*mu/V_cell + r_CMPNeu5Ac_glyc/1000*60);#+  r_CMPNeu5Ac_glyc/1000*60);#;#NmAb_CMPNeu5Ac*QmAb);
+
+$t=1;
+
+#Process (adapted from: https://onlinelibrary.wiley.com/doi/full/10.1002/bit.26960)
+
+UNIT
+
+cell AS HCP_mAb_GlycoModel_ER_2_TPs_Fleischer_corrected_hcp_NSDs
+
+SET
+
+WITHIN cell DO
+
+V_cell  :=  1.123e-12;#2.5e-12 ;   # [=] L/v.cell
+MW      :=  165174;#150000 ;    # [=] g_prod/mol_prod
+MW_HCPs :=  46167;
+
+n := 282;
+k := 180;
+
+m := 95;
+p := 77;
+
+comp := 4;
+t_golgi := 22;
+V_golgi := 1.15E-14; #L
+
+Enzymes     := ['ManI','ManII','GnTI','GnTII','GnTIII','GnTIV','GnTV','FucT','GalT','SiaT','iGnT'];
+    
+kf_UDPGal   := 948;#689; #min-1
+#TP_UDPGal   := 0.7E-6; #uM_protein
+#Km_UDPGal   := 420;#2.4;#220;#420;#2.4;#220;#2.4; #uM
+
+kf_UDPGlcNAc   := 1422;#1084; #min-1
+#TP_UDPGlcNAc   := 0.8E-6; #uM_protein
+Km_UDPGlcNAc   := 400;#7.13; #uM
+
+kf_GDPFuc   := 130; #min-1
+#TP_GDPFuc   := 0.37E-6; #uM_protein
+#Km_GDPFuc   := 7.5; #uM
+
+kf_CMPNeu5Ac   := 592;#397; #min-1
+#TP_CMPNeu5Ac   := 0.82E-6; #uM_protein
+Km_CMPNeu5Ac   := 200;#1.3; #uM
+
+Acomp       := 9.9E-9;#dm2 golgi surface
+
+
+END
+
+ASSIGN
+WITHIN cell DO
+Fin :=0;
+Fout :=0;
+
+############################################## mu and Xv related ########################################################
+mu_max := 3.89e-2;#0.065;
+mu_d_max := 1.41e-2;#0.015;
+
+Klysis :=0.5; 
+
+Kglc :=14.0378;#1;
+Klac :=0.00001;
+Kasn :=2.62371;#1.99439;#5.87121;
+Kglu :=0.000001;
+Kgln :=0.00000454277;
+
+KIlac :=1000;
+KIamm :=3.16935;#4.29321;#3.22084;
+KIurd :=41.0875;#41.2322;#522.37;
+KIgal :=1000;#180.92;
+
+Kd_amm :=14.2830;#17.6904;#7.47082;
+Kd_urd :=27.8752;#27.7033;#1261.7;
+Kd_gal :=10e3;
+Kd_urd_gal :=1E-6;
+Kd_asn := 7.8805E-02;
+##############################################################################################
+
+                                           #metabolism
+Km_asn := 7.0288;
+
+Kgal :=18.2317;#10;#17.2302;#51.015;
+Kurd :=7.00810;#7.45889;#0.0001;#1.0000E+04;
+
+Urd_feed := 0;
+Gal_feed := 0;
+
+Glc_feed :=144.37;
+Glu_feed :=12.19;
+Asp_feed :=51.95;
+Arg_feed :=9.16;
+Asn_feed :=26.99;
+Lys_feed :=16.64;
+Pro_feed :=10.18;
+
+#Phil feeds
+Gln_feed :=0;
+Amm_feed :=0.06;
+
+
+Yx_glc :=1.0115e9;#6.81954e8;#6.95664e8;#9.85388e8;
+Yx_gln := 4.64127e9;#1.1e10;#5.23477e9;#5e9;#1e10;#4.64127e9;#4.95854e10;#2.99635e10                      ;#4.19744e15;#3.96707e15;#1.29429e15;#8.90767e14;
+Yx_glu := 1.45647e10;#6.96090e9;#9.28e9; 
+Yx_lac :=5.45539e7;#1.93022;#4.48102e7;
+Yx_amm :=2.36299e9;#1.61764e9;#2.39227e9;
+Yx_gal :=1.38498e8;#2.99779e8;#1.61760;#8e17;
+Yx_urd :=1.61202e9;#1.57826e9;#3.9984e9;#1.57E7;
+
+Yx_asn := 3.46e8;#7.6824e8;#7.8e8;#7.1E10;
+Yx_asp :=3.59E9;
+Yx_arg :=2.64E10;
+Yx_lys :=1.75E10;
+Yx_pro :=3.26e11;
+
+
+Ygln_glu := 0;#1;#0.75;#0.264294;#1;#0                            ;#0.141300;#0.164522;#0.999344;#1;
+Ygln_asn := 0                            ;#0.169801;#0.198063;#0.218174;#0.16945;
+Ygln_amm := 0.104524;#0;#0.104524;#0.566056;#0.613649                    ;#0.0864748;
+Ylac_glc :=1.56;  #Yoon et. al 2003 ''Effect of low culture temperature on specific productivity,transcription level, and heterogeneity of erythropoietin in Chinese hamster ovary cells.##
+Yasp_asn :=0.126;
+Yarg_glu :=0.007;
+Ylys_glu :=0.116;
+Ypro_glu :=1;
+Yglu_gln :=0.117387;#1E-10;
+Ylac_gal :=1;#0.1;
+Yamm_asn :=6.8711E-01;
+Yamm_glu :=0.6;
+Yamm_urd := 2;
+
+m_lac :=1.87253e-10;#2.30586e-10;#mmol/cell/h
+m_glc := 3.43293e-11;#3.25668e-11;#3.70276e-11;#3.45921e-11;
+m_asn :=4.4200E-11;
+Kamm_gln :=0.03891;
+m_gln :=4.8000E-12;
+Kc_gal :=5.27033;#11.1439;#2.9166E+02;
+m_gal := 8e-10;#8.65e-10;# mine from excel file CHO growth_from_gPROMS located in Data files # Philip: 0;
+
+Ku_g :=0.5;
+
+nd_urd :=1.3301;
+
+Lac_max_1 := 21.1983;
+Lac_max_2 := 16;
+
+#n:=1;#0.768867;#1.5;
+
+Yasn_asp := 0.1;
+
+#ng := 1;
+
+factor := 0.347987069;#2.87367;
+###############################################  mAb #######################################
+
+YmAb_Xv :=1.07e-9;#4.12718e-10;# mine from excel: 4.2004e-10;# Susi: 8.8900E-10;
+YmAb_mu :=3.38956e-9;#Phil's: 1.09e-8;#0 ;# Phil's term. It's zero only for the control
+
+DCW     := 271; #pg_cell/cell ,del Val et al 2016 Sc.R.
+CPC     := 74.2; #(%) ,del Val et al 2016 Sc.R.
+####################################### NSD ############################################################
+
+#Glc and Gln intracellular
+k_T_glc	:=	1.58537;
+k_T_gln	:=	2.54372;
+f2 := 0.0222435;#0.1;
+fo_Gln := 0.979388;
+N_UDPGlc_Glc := 1.11;
+N_UDPGlcNAc_Glc := 1.24;
+N_GDPMan_Glc := 2;#0.71;
+fo_Glc := 0.001;#771;#9.40311;
+
+#####################################
+
+#NSDs
+#Vmax
+Vmax1 := 0.71;#     0.921507;#1.75715;#1.75412;#18.6814;#72.2308;#100;
+Vmax2 := 0.024    ;#0.0169968;# +/- 0.0009782           0.009994;#0.01;#0.0753463;
+Vmax2b := 0.001;#    59.4891;# +/-6.209                     59.2764;#40.0742;#81.5613;#8.68874;#10.7968;
+Vmax3 := 0.487        ;#   0.0550887;#0.6;#10;#0.1;#0.00123571;#0.00405149;#1;#0.001;
+Vmax4 := 0.00467;       #0.0265253;#0.0152957;#0.0152689;#0.0129516;#0.0183230;
+Vmax4b := 0.01;
+Vmax5 := 0.00001;#       0.0001;#0.001;#0.01;#;
+Vmax6 := 54.6722;#           5.1304;#3.23341;#0.115672;#10;#0.210744;
+Vmax7 := 1.98221;#      4.59677;#2.21281;#0.05;#0.554861;#0.495141;#0.1;#10;#0.1;
+
+#Kdf
+Kdf_E1 := 492.996;
+Kdf_E1_glc := 10;#0.01;#327.982;#20;
+Kdf_E1_gln := 0.418760;#2.38802;#2.66425;#100;#2.45066;
+Kdf_E2 := 60.2446;
+Kdf_E2b := 0.0248298;# +/-0.002585 (it;s the kdf_E61 in the reduced model)
+Kdf_E3 := 492.479;
+Kdf_E4 := 2.31278;#0.585373;#0.430852;#0.893511;
+Kdf_E4b := 0.5;
+Kdf_E5 := 0.0269656;#2;#0.220937;
+Kdf_E6 := 0.0163559;#0.116887;#0.114452;#10;#0.0339358;#9.50976;
+Kdf_E7 := 0.994547;#0.0853766;#0.01;#101;#0.1;#51.5408;#0.01;#10;
+
+Kdf_Glc_UDPGlc := 78.1241;# +/- 6.719                                                              78.4404;#50.2530;#48.6767;#1000;#490.5248;
+Kdf_Glc_GDPMan := 50;#185.685;#500;#20;#76.530; 
+
+#Ki
+KiE2A := 1.04504e-6;#1e-5;#0.000672642;#0.0117294;#0.00195714;
+KiE2B := 92.1059;#0.216406;#0.380354;#0.508810;#100;
+KiE2C := 0.0132697;#7.65418e-5;#0.00756725;#0.0476007;#0.0238905;
+KiE2D := 2.66102e-6;#0.0001;
+Ki3_glc :=4.15469;#100;
+KiE4A :=0.1;
+KiE4B :=0.1;
+KiE4C :=0.1;
+KiE4bA :=0.1;
+KiE4bB :=0.1;
+KiE4bC :=0.1;
+Ki_E5 := 1000;#0.0268144;
+KiE6A := 1.10182e-7;#3.07814e-6;#0.000133357;#0.000152208;#0.00779703;
+KiE6B := 4.57309;#5.05605;#0.0347001;#0.000334066;#0.0451704;
+KiE6C := 4.83505e-6;#2.64788e-5;#0.000682674;#0.0179941;#100;
+Ki_E7	:= 0.0164192;#0.0712115;#0.002;#2.59332;#220.949;#10;#0.0294676;
+
+m5 := 1;#0.01;
+########## KTP_NSD
+
+KTP_UDPGlc    := 0.989957;# +/- 0.04468           0.591933;#0.604575;#0.362095;#0.296596;#1.53677;
+KTP_UDPGal    := 7.1464;#  +/- 0.3318               7.04311;#                       6.51684;#5.68445;#5;
+KTP_UDPGlcNAc := 5.04905;# +/- 2.309                                       2.56127;#                       0.552624;#1;#0.0300315;#0.0298946;#0.0179582;#0.0314801;#0.0561054;
+KTP_UDPGalNAc := 11.0558;#1.26100;#1.44709;#1.26612;
+KTP_GDPMan    := 0.127219;# +/-0.03421                                 0.0445393;#0.0115243;#0.1;#19.6835;#1;#0.01;#10;
+KTP_GDPFuc    := 0.1;#0.001;#0.01;#1.34483;#1;#0.01;#1.08341;
+KTP_CMPNeu5Ac := 503.213;#0.01;#1000;#0.104070;
+
+#mine Fout,NSD terms (initial estimation taken from '' A theoritical estimate for nucleotide...'' del Val et al. 2016
+
+Nhcp_lipids_UDPGlc := 1.560e-12; #mmolNSD/cell
+Nhcp_lipids_UDPGlcNAc := 1.248e-12;
+Nhcp_lipids_UDPGal := 2.288e-12;
+Nhcp_lipids_UDPGalNAc := 1.252e-12;
+Nhcp_lipids_GDPMan := 3.538e-12;
+Nhcp_lipids_GDPFuc := 0.140e-12;
+Nhcp_lipids_CMPNeu5Ac := 1.846e-12;
+
+NmAb_UDPGlc := 40.39e-6; #mmolNSD/mgmAb         #40.39e-3; #mmolNSD/gmAb
+NmAb_UDPGlcNAc := 26.67e-6;#49.14e-6;                     #49.14e-3;   the 49.14 nmol/mg is the total UDPGlcNAc in the mAb while the 26.67 is the only the two molceules of GlcNAc in the core glycan (4 mol_GlcNAc/mol_mAb)
+NmAb_UDPGal := 7.119e-6;                        #7.119e-3;
+NmAb_UDPGalNAc := 0;
+NmAb_GDPMan := 121.2e-6;                        #121.2e-3;
+NmAb_GDPFuc := 12.23e-6;#12.23e-3;
+NmAb_CMPNeu5Ac := 0.155e-6;#0.155e-3;
+
+NmAb_UDPGlcNAc_b := 49.14e-6 - 26.67e-6;
+
+N_Oglyc_lipids_UDPGlc := 0.503e-12; #mmolNSD/cell
+N_Oglyc_lipids_UDPGlcNAc := 0e-12;
+N_Oglyc_lipids_UDPGal := 1.783e-12;
+N_Oglyc_lipids_UDPGalNAc := 1.252e-12;
+N_Oglyc_lipids_GDPMan := 0.366e-12;
+N_Oglyc_lipids_GDPFuc := 0e-12;
+N_Oglyc_lipids_CMPNeu5Ac := 1.812e-12;
+##################################################################################################################################################################################
+Vmax1u :=0.147995;#0.1; #UDPGlcNAc
+Vmax2u := 0.00439;#0.0451806;#    0.0485324;#0.05; #UDPGlc
+Vmax4u :=0.0127551;#0.07; #UDPGalNAc
+Vmax6u :=4.59;#5.34270;#      5.12689;#10;   #UDPGal
+Vmax6g := 40.8965;#135.371;#15;#1000;#81.4140;#26.3366;#12.8468;#0.3;#69.3688;#0.05;#0.01;
+Vmax6_sink := 7.30429;#5.56442;#0.17;#17.3851;#1.35335;#68.5410;#1.32436;#0.1;#45.2274;#0.5;
+Vmax7_sink :=10.9370;#1.16015;#0.01;
+Vmax1_sink := 25.4859;#0.01;
+
+K1u :=29.9;#6.08196;#4;
+K2u :=0.1;#13.6332;#5;
+K4u :=6.24826;#15;
+K6u :=0.18;#0.438499;#7;
+K6g :=0.600019;#6.45107;#5.69130;#7.07820;#5.0073;#765.617;#50;#1;#200;
+
+K6_sink :=0.128756;#0.128021;#0.219034;#0.190594;#0.224521;#4.92511;#0.197945;#5;#820.396;#10;
+K7_sink :=8.87794;#0.0982528;#0.01;
+K1_sink :=0.0406881;#1;
+
+Ki1_sink := 0.000120640;#0.01;
+Ki2_gal := 100;
+Ki2_urd := 20;
+Ki6_urd := 0.00058;#0.000911002;#0.01;
+Ki6_glc := 0.292793;#1000;#650.857;#0.01;#100;#0.1;
+Ki6_gal := 99.6298;#32.7082;#99.9637;#60.0233;#100;
+Ki6_ugal := 0.01;#(not bound);#0.0270481;#0.01;#0.0112732;#0.480619;#;10;
+Ki6_sink := 10;
+###############
+
+#OS1in_mAb := 375.64;#93.91047;#265;#99.95319 ;
+#OS1in := 375.64; #assumption: the HCP concentration that is N-linked glycosylated is around the same with the mAb (look at Ios Data excel file)
+#Vcomp:=6.25e-15; 
+END
+
+INITIAL
+cell.t = 0;
+
+WITHIN cell DO
+#GROWTH
+V=0.1;
+Xv=2.00E+08;
+Xt=2.00E+08;
+
+#METABOLISM (initial concentrations are based to Philip's Model: Full_4p_model)
+Glc =36;
+Glu =2.125333333;
+Asn =6.09;
+Asp =1.05;
+Lac =1.391166667;
+Arg =1.90;
+Lys =2.83;
+Pro =3.81;
+Amm =0.1;
+Urd =0.0;
+Gal =0.0;
+Gln =0.01;
+
+# mAb SYNTHESIS
+mAb =2.76709;# Susi: 140.5;
+
+HCP = 25700;
+#intra
+Glc_int = 4.45;#5.23;#2.26;#3.3
+
+############## NSD model #######
+
+UDPGlc = 0.09;#0.18951645;
+UDPGlcNAc =  0.22;#0.37;#0.001;#0.37367593;
+UDPGal = 0.047;#0.05342652;
+UDPGalNAc = 0.067;#0.14257092;
+GDPMan = 0.6;#0.008380975;
+GDPFuc = 0.1;#0.01185;#0.01413165;
+CMPNeu5Ac = 0.5475;#0.03202838;
+
+#UDPGal_golgi    = 1500;#2650;
+#UDPGlcNAc_golgi = 7400;#1057;#7400;#10000;
+#GDPFuc_golgi    = 344;
+#CMPNeu5Ac_golgi = 928;
+
+END
+SOLUTIONPARAMETERS
+    DASolver := "DASOLV"
+
+
+
+
+
+
+
+
+SCHEDULE
+     SEQUENCE
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0;
+        CELL.Gal_feed := 0;
+        CELL.Urd_feed := 0;
+      END
+
+      CONTINUE FOR 24;
+#24
+
+      
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 0.01
+      
+      RESET 
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.99
+#48
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.63;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 1;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.98
+#72.0
+
+      
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.37;
+      END
+
+      CONTINUE FOR 0.01
+      
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+      
+      CONTINUE FOR 23.99
+#96.0
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.3;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 1;
+        CELL.Fout:= 0;
+        CELL.Gal_feed   := 21.912;
+        CELL.Urd_feed   := 4.3824;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0.36;
+        CELL.Gal_feed := 0;
+        CELL.Urd_feed := 0;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.97
+#120.0
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0.24;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.99
+#144.0
+
+
+      RESET
+
+        CELL.Fin := 0;
+         CELL.Fout:= 0.26;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 1;
+         CELL.Fout:= 0;
+        CELL.Gal_feed   := 6.409;
+        CELL.Urd_feed   := 1.2818;
+
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+         CELL.Gal_feed := 0;
+         CELL.Urd_feed := 0;
+      END
+
+      CONTINUE FOR 23.98
+#168.0
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.54;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.99
+#192.0
+
+
+      RESET
+
+        CELL.Fin := 0;
+        CELL.Fout:= 0.23;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 1;
+         CELL.Fout:= 0;
+         CELL.Gal_feed   := 233.459;
+         CELL.Urd_feed   := 46.6918;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.1;
+         CELL.Gal_feed   :=  0;
+         CELL.Urd_feed := 0;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.97
+#216.0
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.53;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.99
+#240.0
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.23;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 1;
+        CELL.Fout:= 0;
+        CELL.Gal_feed   := 3.967;
+        CELL.Urd_feed   := 0.7934;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+        CELL.Fin := 0;
+        CELL.Fout:= 0;
+        CELL.Gal_feed := 0;
+        CELL.Urd_feed := 0;
+      END
+
+      CONTINUE FOR 23.98;
+#264.0
+
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0.53;
+      END
+
+      CONTINUE FOR 0.01
+
+      RESET
+         CELL.Fin := 0;
+         CELL.Fout:= 0;
+      END
+
+      CONTINUE FOR 23.99
+#288.0
+END
+
+#############################################################################################################################################################
+
+#The ANN module of the HyGlycoM model is developed for Python 3.7.
+
+#Estmation of the mAb glycoprofile based on NSD prediction from the metabolic model
+
+import numpy as np
+
+#######################
+#Defining the sigmoid activation function and its derivative
+def act_func_sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+def act_func_sigmoid_der(x):
+    return act_func_sigmoid(x)*(1-act_func_sigmoid(x))
+
+##############################################
+
+error = np.zeros([20,20])   #recording the difference between the output of the network and the experimental data
+
+### Define the training set
+for i in range(1, 21):
+    print (i)
+    for j in range(1, 21):
+
+        np.random.seed(0)
+        inputs = np.array([[0.195955424638637,	0.319210204666127,	0.524387751138218,	0.666666666666667,	0.0797721323811798,	0.214762429321455,	0.494934669331434,	0.660832443186013,	0.0686847087570257,	0.110053342659611,	0.174382427675517,	0.213982344163017],
+        [0.130533803711264,	0.249380940306302,	0.448457212621698,	0.57948803337697,	0.0896170902248389,	0.249933790435273,	0.513646955767795,	0.666666666666667,	0.0861407154930438,	0.188584205556648,	0.313455483278669,	0.382728953539095],
+        [0.404853548344154,	0.424410820314001,	0.609559357802452,	0.639969208402026,	0.0944414757465724,	0.528382986491458,	0.634389021051575,	0.666666666666667,	0.0794615519574607,	0.0699256132207775,	0.0643239899078031,	0.0630360070096243],
+        [0.427306582590515,	0.509778109345482,	0.606108326104165,	0.663736818115361,	0.353865500667867,	0.481903136252955,	0.609902780517372,	0.666666666666667,	0.275330614388504,	0.3271273290441,	0.379212099476977,	0.413450172943099],
+        [0.537172626968949,	0.593950046589489,	0.644213498858911,	0.666666666666667,	0.522340887311949,	0.58756975122938,	0.641953800267152,	0.662839807423483,	0.5196616529558,	0.573265939244484,	0.611503173011192,	0.629637309599005],
+        [0.299096566320578,	0.417077329356188,	0.573005666459088,	0.666666666666667,	0.274633009640148,	0.400690179298874,	0.563896741319716,	0.648487933643814,	0.270438594433534,	0.367573666423512,	0.462213542238027,	0.51616947390937]]).T
+
+
+        outputs = np.array([[0.583684912150174,	0.486097167325227,	0.361006900187058,	0.520225722900937,	0.666666666666667,	0.530003148057268,	0.388524577843592,	0.516114499072512,	0.605773614310205,	0.606381993599671,	0.467003701832802,	0.595710111086108],
+        [0.551525778312045,	0.466488848418436,	0.527197825636022,	0.616742354797729,	0.578030638609756,	0.540953012075742,	0.536700143441761,	0.632054186516607,	0.539473193082614,	0.59168580964392,	0.652302220191116,	0.666666666666667],
+        [0.331094180584791,	0.412422700394966,	0.445277792040921,	0.458427376722807,	0.337447987754524,	0.368613497862566,	0.411433994035483,	0.463711336768917,	0.446692769192276,	0.526799800860681,	0.6139245881747,	0.666666666666667],
+        [0.666666666666667,	0.433559222951624,	0.527794137825186,	0.134326364501945,	0.627922737403327,	0.594093418446286,	0.497853215323882,	0.366527550108822,	0.463378852608529,	0.332892812066066,	0.318301401183954,	0.271533033547598],
+        [0.625172017291957,	0.335626304838047,	0.351786510427473,	0.406537751718957,	0.666666666666667,	0.537565967567387,	0.459053682393623,	0.361149254293092,	0.366990550880603,	0.349185071557922,	0.308466999981048,	0.111158592200413],
+        [0.559710846167224,	0.6554083484934,	0.666666666666667,	0.628543867256495,	0.539709782609837,	0.607498674564395,	0.664751819656128,	0.62772021343847,	0.589881926681057,	0.553017296511148,	0.506105546518969,	0.47854717387216],
+        [0.666666666666667,	0.476533001354468,	0.40592367220588,	0.421348773663787,	0.65983757427626,	0.538674647755704,	0.457502042617689,	0.416948378351798,	0.519837202209055,	0.371228974509332,	0.307628480842989,	0.285893077809824],
+        [0.377023630594569,	0.666666666666667,	0.655707142502743,	0.59721140183778,	0.356570546747403,	0.618530104928148,	0.591582473904129,	0.561401897311817,	0.472068291482075,	0.578582230516199,	0.589290016396102,	0.239135780018347],
+        [0.666666666666667,	0.567029265053651,	0.545585004385384,	0.502776355291401,	0.578775285046852,	0.5758931847966,	0.575792603515051,	0.428480725435081,	0.367614532880611,	0.274853089866561,	0.218173380736231,	0.212324144878619]]).T
+
+        #learning rate
+        lr = 0.5 
+
+        #initial values for the weights
+        wh1 = np.random.rand(len(inputs[0]),i)
+        wo1 = np.random.rand(i, j)
+        wh2 = np.random.rand(i, j)
+        wo2 = np.random.rand(j, len(outputs[0]))
+
+        ### Neural network training        
+        for epoch in range(20000):
+            
+            zh1 = np.dot(inputs, wh1)
+            afh1 = act_func_sigmoid(zh1)
+
+            zo1 = np.dot(afh1, wo1)
+            afo1 = act_func_sigmoid(zo1)
+
+            zh2 = np.dot(afh1, wh2)
+            afh2 = act_func_sigmoid(zh2)
+            
+            zo2 = np.dot(afo1, wo2)
+            afo2 = act_func_sigmoid(zo2)
+
+            ###1st hidden Layer
+            error_out1 = ((0.5)*(np.power((afo1 - afh2), 2)))
+            cost_afo1_der = afo1 - afh2
+            afo_zo1_der = act_func_sigmoid_der(zo1)
+            zo_wo1_der = afh1
+            cost_wo1_der = np.dot(zo_wo1_der.T, cost_afo1_der*afo_zo1_der)
+
+            cost_zo1_der = cost_afo1_der * afo_zo1_der
+            zo_afh1_der = wo1
+            cost_afh1_der = np.dot(cost_zo1_der, zo_afh1_der.T)
+            afh_zh1_der = act_func_sigmoid_der(zh1)
+            zh_wh1_der = inputs
+            cost_wh1_der = np.dot(zh_wh1_der.T, afh_zh1_der*cost_afh1_der)
+
+            #update weights
+            wh1 -= lr*cost_wh1_der
+            wo1 -= lr*cost_wo1_der
+
+            #2nd hidden layer
+            error_out2 = ((0.5)*(np.power((afo2 - outputs), 2)))
+            cost_afo2_der = afo2 - outputs
+            afo_zo2_der = act_func_sigmoid_der(zo2)
+            zo_wo2_der = afh2
+            cost_wo2_der = np.dot(zo_wo2_der.T, cost_afo2_der*afo_zo2_der)
+
+            cost_zo2_der = cost_afo2_der * afo_zo2_der
+            zo_afh2_der = wo2
+            cost_afh2_der = np.dot(cost_zo2_der, zo_afh2_der.T)
+            afh_zh2_der = act_func_sigmoid_der(zh2)
+            zh_wh2_der = afh1
+            cost_wh2_der = np.dot(zh_wh2_der.T, afh_zh2_der*cost_afh2_der)
+
+            #update weights
+            wh2 -= lr*cost_wh2_der
+            wo2 -= lr*cost_wo2_der   
+
+
+        #Validation set (tuning of the hyperparameters)
+        validation_point = np.array([[0.109746336564167,	0.257055750833315,	0.49988783467245,	0.625006678427148],
+        [0.0990331425571768,	0.261095615310354,	0.47734332269153,	0.587139021029883],
+        [0.242286757398021,	0.544724817964093,	0.588332197603187,	0.615465315979658],
+        [0.398591429760304,	0.507341417079477,	0.61127014647284,	0.66661813600694],
+        [0.527895177253747,	0.593244419815016,	0.643597857819142,	0.665751368585597],
+        [0.283566762817978,	0.414877194473313,	0.570503848170587,	0.662113805881166]]).T
+
+        #outputs of each layer using the validation data set 
+        resulth1 = act_func_sigmoid(np.dot(validation_point, wh1))   #outputs of the input layer
+        resulto1 = act_func_sigmoid(np.dot(resulth1, wo1))           #outputs of the 1st hidden layer
+        resulto2 = act_func_sigmoid(np.dot(resulto1, wo2))           #outputs of the 2nd hidden layer
+
+        #experimental data for the validation set
+        experimental_results = np.array([[0.617559877002843,	0.493103121704654,	0.352629745627593,	0.515989658974102],
+        [0.559782346530689,	0.507585020897321,	0.509244067449141,	0.586878796028248],
+        [0.32722285851428,	0.391829956828838,	0.449428687004989,	0.503314048709583],
+        [0.64897367105671,	0.567656371304023,	0.696503791025543,	0.317775920600374],
+        [0.632685944505678,	0.487200510131767,	0.31187745917049,	0.331068004283069],
+        [0.537412028278346,	0.626653092803307,	0.64017434922406,	0.604083401662398],
+        [0.656068327781554,	0.491171086745587,	0.389635684510415,	0.371729609898935],
+        [0.54970526803317,	0.598873865203017,	0.74105524729647,	0.560541880577494],
+        [0.647940470847077,	0.552246737630851,	0.552666794201631,	0.382059738626512]]).T
+
+        #defining the error tables
+        error_table = abs(resulto2 - experimental_results)
+
+        error[i-1,j-1] = error_table.sum()
+
+for i in range(1,20):
+    for j in range(1,20):
+        if error[i,j] == error.min():
+            x = i
+            y = j
+
+print ("The minimum error is found in the following coordinates (number of nodes): x=", x, ", y=", y)
+print ("The error of the optimized NN is: ", error[x,y])
+print ("The optimum nodes combination therefore is: HL1: ", x+1, ", HL2: ", y+1)
+print (" ")
+##########################################################################################################################################
+
+######Prediction experiment (quadraple knockout)
+#Repeat the network configuration
+error_pred = np.zeros([20,20])
+
+np.random.seed(0)
+feature_set = np.array([[0.195955424638637,	0.319210204666127,	0.524387751138218,	0.666666666666667,	0.0797721323811798,	0.214762429321455,	0.494934669331434,	0.660832443186013,	0.0686847087570257,	0.110053342659611,	0.174382427675517,	0.213982344163017],
+[0.130533803711264,	0.249380940306302,	0.448457212621698,	0.57948803337697,	0.0896170902248389,	0.249933790435273,	0.513646955767795,	0.666666666666667,	0.0861407154930438,	0.188584205556648,	0.313455483278669,	0.382728953539095],
+[0.404853548344154,	0.424410820314001,	0.609559357802452,	0.639969208402026,	0.0944414757465724,	0.528382986491458,	0.634389021051575,	0.666666666666667,	0.0794615519574607,	0.0699256132207775,	0.0643239899078031,	0.0630360070096243],
+[0.427306582590515,	0.509778109345482,	0.606108326104165,	0.663736818115361,	0.353865500667867,	0.481903136252955,	0.609902780517372,	0.666666666666667,	0.275330614388504,	0.3271273290441,	0.379212099476977,	0.413450172943099],
+[0.537172626968949,	0.593950046589489,	0.644213498858911,	0.666666666666667,	0.522340887311949,	0.58756975122938,	0.641953800267152,	0.662839807423483,	0.5196616529558,	0.573265939244484,	0.611503173011192,	0.629637309599005],
+[0.299096566320578,	0.417077329356188,	0.573005666459088,	0.666666666666667,	0.274633009640148,	0.400690179298874,	0.563896741319716,	0.648487933643814,	0.270438594433534,	0.367573666423512,	0.462213542238027,	0.51616947390937]]).T
+
+
+labels = np.array([[0.583684912150174,	0.486097167325227,	0.361006900187058,	0.520225722900937,	0.666666666666667,	0.530003148057268,	0.388524577843592,	0.516114499072512,	0.605773614310205,	0.606381993599671,	0.467003701832802,	0.595710111086108],
+[0.551525778312045,	0.466488848418436,	0.527197825636022,	0.616742354797729,	0.578030638609756,	0.540953012075742,	0.536700143441761,	0.632054186516607,	0.539473193082614,	0.59168580964392,	0.652302220191116,	0.666666666666667],
+[0.331094180584791,	0.412422700394966,	0.445277792040921,	0.458427376722807,	0.337447987754524,	0.368613497862566,	0.411433994035483,	0.463711336768917,	0.446692769192276,	0.526799800860681,	0.6139245881747,	0.666666666666667],
+[0.666666666666667,	0.433559222951624,	0.527794137825186,	0.134326364501945,	0.627922737403327,	0.594093418446286,	0.497853215323882,	0.366527550108822,	0.463378852608529,	0.332892812066066,	0.318301401183954,	0.271533033547598],
+[0.625172017291957,	0.335626304838047,	0.351786510427473,	0.406537751718957,	0.666666666666667,	0.537565967567387,	0.459053682393623,	0.361149254293092,	0.366990550880603,	0.349185071557922,	0.308466999981048,	0.111158592200413],
+[0.559710846167224,	0.6554083484934,	0.666666666666667,	0.628543867256495,	0.539709782609837,	0.607498674564395,	0.664751819656128,	0.62772021343847,	0.589881926681057,	0.553017296511148,	0.506105546518969,	0.47854717387216],
+[0.666666666666667,	0.476533001354468,	0.40592367220588,	0.421348773663787,	0.65983757427626,	0.538674647755704,	0.457502042617689,	0.416948378351798,	0.519837202209055,	0.371228974509332,	0.307628480842989,	0.285893077809824],
+[0.377023630594569,	0.666666666666667,	0.655707142502743,	0.59721140183778,	0.356570546747403,	0.618530104928148,	0.591582473904129,	0.561401897311817,	0.472068291482075,	0.578582230516199,	0.589290016396102,	0.239135780018347],
+[0.666666666666667,	0.567029265053651,	0.545585004385384,	0.502776355291401,	0.578775285046852,	0.5758931847966,	0.575792603515051,	0.428480725435081,	0.367614532880611,	0.274853089866561,	0.218173380736231,	0.212324144878619]]).T
+
+wh1 = np.random.rand(len(feature_set[0]),x+1)
+wo1 = np.random.rand(x+1, y+1)
+wh2 = np.random.rand(x+1, y+1)
+wo2 = np.random.rand(y+1, len(labels[0]))
+lr = 0.5
+
+#print (wh1) #it was silenced in order to save some time during optimization
+
+for epoch in range(20000):
+    zh1 = np.dot(inputs, wh1)
+    afh1 = act_func_sigmoid(zh1)
+
+    zo1 = np.dot(afh1, wo1)
+    afo1 = act_func_sigmoid(zo1)
+
+    zh2 = np.dot(afh1, wh2)
+    afh2 = act_func_sigmoid(zh2)
+            
+    zo2 = np.dot(afo1, wo2)
+    afo2 = act_func_sigmoid(zo2)
+
+    ###1st hidden Layer
+    error_out1 = ((0.5)*(np.power((afo1 - afh2), 2)))
+    cost_afo1_der = afo1 - afh2
+    afo_zo1_der = act_func_sigmoid_der(zo1)
+    zo_wo1_der = afh1
+    cost_wo1_der = np.dot(zo_wo1_der.T, cost_afo1_der*afo_zo1_der)
+
+    cost_zo1_der = cost_afo1_der * afo_zo1_der
+    zo_afh1_der = wo1
+    cost_afh1_der = np.dot(cost_zo1_der, zo_afh1_der.T)
+    afh_zh1_der = act_func_sigmoid_der(zh1)
+    zh_wh1_der = inputs
+    cost_wh1_der = np.dot(zh_wh1_der.T, afh_zh1_der*cost_afh1_der)
+
+    #update weights
+    wh1 -= lr*cost_wh1_der
+    wo1 -= lr*cost_wo1_der
+
+    #2nd hidden layer
+    error_out2 = ((0.5)*(np.power((afo2 - outputs), 2)))
+    cost_afo2_der = afo2 - outputs
+    afo_zo2_der = act_func_sigmoid_der(zo2)
+    zo_wo2_der = afh2
+    cost_wo2_der = np.dot(zo_wo2_der.T, cost_afo2_der*afo_zo2_der)
+
+    cost_zo2_der = cost_afo2_der * afo_zo2_der
+    zo_afh2_der = wo2
+    cost_afh2_der = np.dot(cost_zo2_der, zo_afh2_der.T)
+    afh_zh2_der = act_func_sigmoid_der(zh2)
+    zh_wh2_der = afh1
+    cost_wh2_der = np.dot(zh_wh2_der.T, afh_zh2_der*cost_afh2_der)
+
+    #update weights
+    wh2 -= lr*cost_wh2_der
+    wo2 -= lr*cost_wo2_der   
+
+
+#PREDICTIVE EXPERIMENT
+predictive_point = np.array([[0.0797721323811798,	0.214762429321455,	0.494934669331434,	0.660832443186013],
+[0.0896170902248389,	0.249933790435273,	0.513646955767795,	0.666666666666667],
+[0.0944414757465724,	0.528382986491458,	0.634389021051575,	0.666666666666667],
+[0.353865500667867,	0.481903136252955,	0.609902780517372,	0.666666666666667],
+[0.522340887311949,	0.58756975122938,	0.641953800267152,	0.662839807423483],
+[0.274633009640148,	0.400690179298874,	0.563896741319716,	0.648487933643814]]).T
+
+#results
+predh1 = act_func_sigmoid(np.dot(predictive_point, wh1))
+predo1 = act_func_sigmoid(np.dot(predh1, wo1))
+predo2 = act_func_sigmoid(np.dot(predo1, wo2))
+
+pred_exp = np.array([[0.666666666666667,	0.530003148057268,	0.388524577843592,	0.516114499072512],
+[0.578030638609756,	0.540953012075742,	0.536700143441761,	0.632054186516607],
+[0.337447987754524,	0.368613497862566,	0.411433994035483,	0.463711336768917],
+[0.627922737403327,	0.594093418446286,	0.497853215323882,	0.366527550108822],
+[0.666666666666667,	0.537565967567387,	0.459053682393623,	0.361149254293092],
+[0.5348287272979,	0.602004546557046,	0.658739902687045,	0.622043204829513],
+[0.65983757427626,	0.538674647755704,	0.457502042617689,	0.416948378351798],
+[0.356570546747403,	0.618530104928148,	0.591582473904129,	0.561401897311817],
+[0.578775285046852,	0.5758931847966,	0.575792603515051,	0.428480725435081]]).T
+
+#error_pred_table = abs(resulto2 - experimental_results)
+
+#error_pred[i-1,j-1] = error_pred_table.sum()
+
+print ("The results of FS2 prediction are: ")
+print (predo2)
