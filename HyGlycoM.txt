@@ -1247,7 +1247,7 @@ print ("The optimum nodes combination therefore is: HL1: ", x+1, ", HL2: ", y+1)
 print (" ")
 ##########################################################################################################################################
 
-######Prediction experiment (quadraple knockout)
+######Prediction experiment
 #Repeat the network configuration
 error_pred = np.zeros([20,20])
 
