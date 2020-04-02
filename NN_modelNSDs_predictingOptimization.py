@@ -1,7 +1,7 @@
 #Estimation of the mAb glycoprofile based on NSD model simulation data from the B&B paper
-#The model will be trained in 4 experiments (control, 10G, 10G20U, 50G5U)
-#The model will be tuned (number of neurons) to simulate the 10G5U experiment
-#The model will be left to predict the Optimization experiment
+#The model will be trained in 4 experiments (control(P1), 10G(P2), 10G20U(P4), 50G5U(P5))
+#The model will be tuned (number of neurons) to simulate the 10G5U(P3) experiment
+#The model will be left to predict the Optimization experiment(P6)
 
 #HL1 = 18
 #HL1 = 34
@@ -13,7 +13,6 @@ def sigmoid(x):
 def sigmoid_der(x):
     return sigmoid(x)*(1-sigmoid(x))
 
-#normalization factors for the glycans
 error = np.zeros([41,41])
 epochs = 20000
 
