@@ -1,6 +1,6 @@
 #Estimation of the mAb glycoprofile based on NSD model simulation data from the B&B paper
-#The model will be trained in 4 experiments (control, 10G, 10G20U, 50G5U)
-#The model will be tuned (number of neurons) to simulate the 10G5U experiment
+#The model will be trained in 4 experiments (control(P1), 10G(P2), 10G20U(P4), 50G5U(P5))
+#The model will be tuned (number of neurons) to simulate the 10G5U experiment(P3)
 
 #preliminary results
 #HL1=18
