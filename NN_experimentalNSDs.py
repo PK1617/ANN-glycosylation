@@ -12,7 +12,6 @@ def sigmoid(x):
 def sigmoid_der(x):
     return sigmoid(x)*(1-sigmoid(x))
 
-#normalization factors for the glycans
 error = np.zeros([41,41])
 
 epochs = 20000
